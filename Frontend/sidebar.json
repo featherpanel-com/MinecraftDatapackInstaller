@@ -1,0 +1,16 @@
+{
+  "dashboard": {},
+  "admin": {},
+  "server": {
+    "/minecraftdatapackinstaller": {
+      "name": "DataPack Installer",
+      "icon": "📦",
+      "showBadge": false,
+      "redirect": "/minecraftdatapackinstaller",
+      "component": "/minecraftdatapackinstaller/dist/index.html",
+      "description": "View Minecraft Data Pack Installer",
+      "category": "server",
+      "group": "Minecraft Java Edition"
+    }
+  }
+}

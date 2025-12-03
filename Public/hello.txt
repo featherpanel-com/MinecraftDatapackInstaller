@@ -1,0 +1,4 @@
+Hi, 
+i am a public file :D 
+just make sure to install me via the plugin interface :D
+not the plugin manager hence that won't add the symlinks!

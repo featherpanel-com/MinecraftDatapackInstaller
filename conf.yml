@@ -1,0 +1,20 @@
+plugin:
+  name: MinecraftDatapackInstaller
+  identifier: minecraftdatapackinstaller
+  description: 'Easily install the Vanilla Tweaks datapacks directly from your FeatherPanel.'
+  flags:
+    - hasInstallScript
+    - hasRemovalScript
+    - hasUpdateScript
+  version: 1.0.0
+  target: v2
+  author:
+    - NaysKutzu
+    - soluslabs
+  icon: '/addons/minecraftdatapackinstaller/icon.png'
+  requiredConfigs: {  }
+  dependencies:
+    - php=8.4
+    - php-ext=curl
+    - php-ext=pdo
+config: {  }
