@@ -4,7 +4,7 @@ import { AlertCircle } from "lucide-vue-next";
 </script>
 
 <template>
-  <div class="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+  <div class="p-4 md:p-8 flex items-center justify-center min-h-[50vh]">
     <div class="mx-auto max-w-md w-full">
       <Card class="border-destructive">
         <CardHeader>
@@ -13,26 +13,19 @@ import { AlertCircle } from "lucide-vue-next";
             <CardTitle class="text-2xl text-destructive">Missing Server UUID</CardTitle>
           </div>
           <CardDescription>
-            The application requires a server UUID to function properly.
+            This page requires a server context to function.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div class="space-y-4">
-            <p class="text-muted-foreground">
-              This application must be accessed with a <code class="px-2 py-1 bg-muted rounded text-sm">serverUuid</code> parameter in the URL.
+            <p class="text-muted-foreground text-sm">
+              Open this addon from a FeatherPanel server page so the
+              <code class="px-1.5 py-0.5 bg-muted rounded text-xs">serverUuid</code>
+              parameter is available.
             </p>
-            <p class="text-sm text-muted-foreground">
-              Example: <code class="px-2 py-1 bg-muted rounded text-xs">?serverUuid=your-uuid-here</code>
-            </p>
-            <div class="pt-4 border-t">
-              <p class="text-sm text-muted-foreground">
-                Please navigate to this page from the FeatherPanel server management interface.
-              </p>
-            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   </div>
 </template>
-

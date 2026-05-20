@@ -3,29 +3,16 @@
 /*
  * This file is part of FeatherPanel.
  *
- * MIT License
+ * Copyright (C) 2025 MythicalSystems Studios
+ * Copyright (C) 2025 FeatherPanel Contributors
+ * Copyright (C) 2025 Cassian Gherman (aka NaysKutzu)
  *
- * Copyright (c) 2025 MythicalSystems
- * Copyright (c) 2025 Cassian Gherman (NaysKutzu)
- * Copyright (c) 2018 - 2021 Dane Everitt <dane@daneeveritt.com> and Contributors
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * See the LICENSE file or <https://www.gnu.org/licenses/>.
  */
 
 namespace App\Addons\minecraftdatapackinstaller\Controllers;
@@ -42,6 +29,7 @@ use App\Services\Wings\Wings;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Addons\minecraftdatapackinstaller\Helpers\VanillaTweaksVersion;
 use App\Controllers\User\Server\CheckSubuserPermissionsTrait;
 
 class VanillaTweaksController
@@ -124,17 +112,15 @@ class VanillaTweaksController
                 $responseData = $response->getData();
                 $files = $responseData['contents'] ?? $responseData ?? [];
 
-                // Look for version folders -> e.g. 1.21.5 -> 1.21
-                $detectedVersion = null;
+                // Collect version folders (e.g. 26.1.2 -> 26.1, 1.21.5 -> 1.21)
+                $folderNames = [];
                 foreach ($files as $item) {
                     if (isset($item['name']) && ($item['directory'] ?? false) === true) {
-                        // Match version pattern -> e.g. 1.21.5 -> 1.21
-                        if (preg_match('/^(\d+\.\d+)/', $item['name'], $matches)) {
-                            $detectedVersion = $matches[1];
-                            break;
-                        }
+                        $folderNames[] = $item['name'];
                     }
                 }
+
+                $detectedVersion = VanillaTweaksVersion::pickNewest($folderNames);
 
                 return ApiResponse::success(['version' => $detectedVersion], 'Version detected');
             } catch (\Exception $e) {
@@ -145,6 +131,34 @@ class VanillaTweaksController
             App::getInstance(true)->getLogger()->error('Error detecting version: ' . $e->getMessage());
 
             return ApiResponse::error('Failed to detect version: ' . $e->getMessage(), 'ERROR', 500);
+        }
+    }
+
+    /**
+     * Get Minecraft versions supported by Vanilla Tweaks.
+     */
+    public function getMcVersions(Request $request, string $serverUuid): Response
+    {
+        try {
+            $user = $this->validateUser($request);
+            $server = $this->validateServer($serverUuid);
+            $node = $this->validateNode($server['node_id']);
+
+            $permissionCheck = $this->checkPermission($request, $server, SubuserPermissions::FILE_READ);
+            if ($permissionCheck !== null) {
+                return $permissionCheck;
+            }
+
+            $versions = VanillaTweaksVersion::getAvailableVersions($this->httpClient);
+
+            return ApiResponse::success([
+                'versions' => $versions,
+                'default' => $versions[0] ?? VanillaTweaksVersion::defaultVersion($this->httpClient),
+            ], 'Versions fetched');
+        } catch (\Exception $e) {
+            App::getInstance(true)->getLogger()->error('Error fetching MC versions: ' . $e->getMessage());
+
+            return ApiResponse::error('Failed to fetch versions: ' . $e->getMessage(), 'ERROR', 500);
         }
     }
 
@@ -301,7 +315,10 @@ class VanillaTweaksController
                 return $permissionCheck;
             }
 
-            $mcVersion = $request->query->get('mcVersion', '1.21');
+            $mcVersion = VanillaTweaksVersion::resolve(
+                $request->query->get('mcVersion'),
+                $this->httpClient
+            ) ?? VanillaTweaksVersion::defaultVersion($this->httpClient);
             $type = $request->query->get('type', 'datapacks');
 
             $prefixMap = [
@@ -403,7 +420,10 @@ class VanillaTweaksController
                 return $permissionCheck;
             }
 
-            $mcVersion = $request->query->get('mcVersion', '1.21');
+            $mcVersion = VanillaTweaksVersion::resolve(
+                $request->query->get('mcVersion'),
+                $this->httpClient
+            ) ?? VanillaTweaksVersion::defaultVersion($this->httpClient);
             $packType = $request->query->get('type', 'datapacks');
             $packName = $request->query->get('pack');
 
@@ -547,12 +567,20 @@ class VanillaTweaksController
             }
 
             $data = json_decode($request->getContent(), true);
-            $mcVersion = $data['mcVersion'] ?? null;
+            $mcVersion = VanillaTweaksVersion::resolve(
+                $data['mcVersion'] ?? null,
+                $this->httpClient
+            );
+
+            if (!$mcVersion) {
+                return ApiResponse::error('Invalid or unsupported Minecraft version', 'INVALID_MC_VERSION', 400);
+            }
+
             $packType = $data['pack_type'] ?? 'datapacks';
             $packs = $data['packs'] ?? [];
             $worldName = $data['world'] ?? 'world';
 
-            if (!$mcVersion || empty($packs)) {
+            if (empty($packs)) {
                 return ApiResponse::error('Missing required parameters', 'INVALID_REQUEST', 400);
             }
 

@@ -6,15 +6,15 @@ plugin:
     - hasInstallScript
     - hasRemovalScript
     - hasUpdateScript
-  version: 1.0.1
+  version: 1.0.4
   target: v2
   author:
     - NaysKutzu
     - soluslabs
-  icon: '/addons/minecraftdatapackinstaller/icon.png'
+  icon: 'https://cdn.mythical.systems/featherpanel/packages/minecraft.webp'
   requiredConfigs: {  }
   dependencies:
-    - php=8.4
+    - php=8.5
     - php-ext=curl
     - php-ext=pdo
 config: {  }
