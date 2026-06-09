@@ -29,8 +29,8 @@ use App\Services\Wings\Wings;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Addons\minecraftdatapackinstaller\Helpers\VanillaTweaksVersion;
 use App\Controllers\User\Server\CheckSubuserPermissionsTrait;
+use App\Addons\minecraftdatapackinstaller\Helpers\VanillaTweaksVersion;
 
 class VanillaTweaksController
 {
