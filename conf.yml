@@ -6,7 +6,7 @@ plugin:
     - hasInstallScript
     - hasRemovalScript
     - hasUpdateScript
-  version: 1.1.2
+  version: 2.0.0
   target: v2
   author:
     - NaysKutzu
