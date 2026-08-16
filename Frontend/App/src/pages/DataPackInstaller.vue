@@ -15,14 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertTriangle,
+  ArrowLeft,
   Check,
   Download,
   ExternalLink,
@@ -31,7 +25,7 @@ import {
   Package,
   Search,
   X,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { useToast } from "vue-toastification";
 import {
   useDataPackAPI,
@@ -240,6 +234,74 @@ onMounted(init);
             </p>
           </div>
         </div>
+      </template>
+
+      <!-- Pack detail page -->
+      <template v-else-if="detailPack">
+        <div class="mb-6 flex items-center gap-3">
+          <Button variant="outline" size="icon" @click="detailPack = null">
+            <ArrowLeft class="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 class="text-2xl font-semibold">
+              {{ detailPack.pack.display || detailPack.pack.name }}
+            </h1>
+            <p v-if="detailPack.pack.version" class="text-sm text-muted-foreground">
+              Version {{ detailPack.pack.version }}
+            </p>
+          </div>
+        </div>
+        <Card class="p-6 bg-card/50 backdrop-blur-sm">
+          <div class="space-y-4">
+            <div class="mx-auto h-32 w-32 overflow-hidden rounded-lg bg-muted">
+              <img
+                v-if="!failedImages.has(imageKey(detailPack.categoryName, detailPack.pack.name))"
+                :src="packImageUrl(detailPack.pack.name)"
+                :alt="detailPack.pack.display || detailPack.pack.name"
+                class="h-full w-full object-cover"
+                @error="onImageError(detailPack.categoryName, detailPack.pack.name)"
+              />
+              <div v-else class="flex h-full w-full items-center justify-center">
+                <Package class="h-10 w-10 text-muted-foreground/50" />
+              </div>
+            </div>
+
+            <p
+              v-if="detailPack.pack.description"
+              class="text-sm text-muted-foreground leading-relaxed whitespace-pre-line"
+            >
+              {{ detailPack.pack.description }}
+            </p>
+
+            <Alert
+              v-if="detailPack.pack.incompatible && detailPack.pack.incompatible.length > 0"
+              variant="destructive"
+            >
+              <AlertTriangle class="h-4 w-4" />
+              <AlertDescription class="text-sm">
+                <p class="font-medium mb-1">Incompatible with:</p>
+                <ul class="list-disc pl-4 space-y-0.5">
+                  <li v-for="item in detailPack.pack.incompatible" :key="item">
+                    {{ item }}
+                  </li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+
+            <Button
+              v-if="detailPack.pack.video"
+              variant="outline"
+              size="sm"
+              as="a"
+              :href="detailPack.pack.video"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink class="h-4 w-4 mr-2" />
+              Watch video
+            </Button>
+          </div>
+        </Card>
       </template>
 
       <!-- Browse -->
@@ -471,72 +533,7 @@ onMounted(init);
         </template>
       </template>
 
-      <!-- Pack detail dialog -->
-      <Dialog
-        :open="detailPack !== null"
-        @update:open="(open) => !open && (detailPack = null)"
-      >
-        <DialogContent v-if="detailPack" class="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {{ detailPack.pack.display || detailPack.pack.name }}
-            </DialogTitle>
-            <DialogDescription v-if="detailPack.pack.version">
-              Version {{ detailPack.pack.version }}
-            </DialogDescription>
-          </DialogHeader>
 
-          <div class="space-y-4">
-            <div class="mx-auto h-32 w-32 overflow-hidden rounded-lg bg-muted">
-              <img
-                v-if="!failedImages.has(imageKey(detailPack.categoryName, detailPack.pack.name))"
-                :src="packImageUrl(detailPack.pack.name)"
-                :alt="detailPack.pack.display || detailPack.pack.name"
-                class="h-full w-full object-cover"
-                @error="onImageError(detailPack.categoryName, detailPack.pack.name)"
-              />
-              <div v-else class="flex h-full w-full items-center justify-center">
-                <Package class="h-10 w-10 text-muted-foreground/50" />
-              </div>
-            </div>
-
-            <p
-              v-if="detailPack.pack.description"
-              class="text-sm text-muted-foreground leading-relaxed whitespace-pre-line"
-            >
-              {{ detailPack.pack.description }}
-            </p>
-
-            <Alert
-              v-if="detailPack.pack.incompatible && detailPack.pack.incompatible.length > 0"
-              variant="destructive"
-            >
-              <AlertTriangle class="h-4 w-4" />
-              <AlertDescription class="text-sm">
-                <p class="font-medium mb-1">Incompatible with:</p>
-                <ul class="list-disc pl-4 space-y-0.5">
-                  <li v-for="item in detailPack.pack.incompatible" :key="item">
-                    {{ item }}
-                  </li>
-                </ul>
-              </AlertDescription>
-            </Alert>
-
-            <Button
-              v-if="detailPack.pack.video"
-              variant="outline"
-              size="sm"
-              as="a"
-              :href="detailPack.pack.video"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ExternalLink class="h-4 w-4 mr-2" />
-              Watch video
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   </div>
 </template>
